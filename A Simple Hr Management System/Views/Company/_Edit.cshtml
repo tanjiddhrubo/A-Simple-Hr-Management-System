@@ -1,0 +1,41 @@
+﻿@model A_Simple_Hr_Management_System.Models.Company
+
+<form asp-action="Edit" id="editCompanyForm">
+    <input type="hidden" asp-for="ComId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="ComName" class="control-label">Company Name</label>
+        <input asp-for="ComName" class="form-control" />
+        <span asp-validation-for="ComName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Basic" class="control-label">Basic (%)</label>
+        <input asp-for="Basic" class="form-control" />
+        <span asp-validation-for="Basic" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Hrent" class="control-label">House Rent (%)</label>
+        <input asp-for="Hrent" class="form-control" />
+        <span asp-validation-for="Hrent" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Medical" class="control-label">Medical (%)</label>
+        <input asp-for="Medical" class="form-control" />
+        <span asp-validation-for="Medical" class="text-danger"></span>
+    </div>
+
+    <div class="form-group form-check mb-3">
+        <label class="form-check-label">
+            <input class="form-check-input" asp-for="IsInactive" /> @Html.DisplayNameFor(model => model.IsInactive)
+        </label>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Save Changes" class="btn btn-primary" />
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+</form>

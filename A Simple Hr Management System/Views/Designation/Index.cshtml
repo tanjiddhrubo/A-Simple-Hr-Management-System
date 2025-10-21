@@ -1,0 +1,132 @@
+﻿@model IEnumerable<A_Simple_Hr_Management_System.Models.Designation>
+
+@{
+    ViewData["Title"] = "Designations";
+}
+
+@if (ViewBag.SelectedCompanyName != null)
+{
+    <h1>Designations for: @ViewBag.SelectedCompanyName</h1>
+
+    <p>
+        <button type="button" class="btn btn-primary" id="createNewDesignationBtn">
+            Create New Designation
+        </button>
+    </p>
+
+    <table class="table" id="designationTable">
+        <thead>
+            <tr>
+                <th>Designation Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.DesigName</td>
+                    <td>
+                        @Html.AntiForgeryToken()
+                        <a asp-action="Edit" asp-route-id="@item.DesigId" class="btn btn-sm btn-info js-edit">Edit</a>
+                        <button data-id="@item.DesigId" class="btn btn-sm btn-danger js-delete">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">
+        Please select a company from the dropdown in the navigation bar to see its designations.
+    </div>
+}
+
+<div class="modal fade" id="designationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="designationModalLabel">Designation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var modal = new bootstrap.Modal(document.getElementById('designationModal'), {});
+            var modalTitle = $('#designationModal .modal-title');
+            var modalBody = $('#designationModal .modal-body');
+
+            // --- CREATE MODAL LOGIC ---
+            $('#createNewDesignationBtn').on('click', function () {
+                modalTitle.text('Create New Designation');
+                $.get('/Designation/Create', function (data) {
+                    modalBody.html(data);
+                    $.validator.unobtrusive.parse($('#createDesignationForm'));
+                    modal.show();
+                });
+            });
+
+            $('#designationModal').on('submit', '#createDesignationForm', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Designation/CreateAjax',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (data) { if (data.success) { location.reload(); } }
+                });
+            });
+
+            // --- EDIT MODAL LOGIC ---
+            $('#designationTable').on('click', '.js-edit', function (e) {
+                e.preventDefault();
+                modalTitle.text('Edit Designation');
+                $.get($(this).attr("href"), function (data) {
+                    modalBody.html(data);
+                    $.validator.unobtrusive.parse($('#editDesignationForm'));
+                    modal.show();
+                });
+            });
+
+            $('#designationModal').on('submit', '#editDesignationForm', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Designation/EditAjax',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (data) { if (data.success) { location.reload(); } }
+                });
+            });
+
+            // --- DELETE AJAX LOGIC ---
+            $('#designationTable').on('click', '.js-delete', function () {
+                var button = $(this);
+                if (confirm("Are you sure you want to delete this designation?")) {
+                    $.ajax({
+                        url: '/Designation/DeleteAjax',
+                        type: 'POST',
+                        data: { id: button.attr('data-id') },
+                        headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                        success: function (data) {
+                            if (data.success) {
+                                button.closest('tr').fadeOut(500, function () { $(this).remove(); });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

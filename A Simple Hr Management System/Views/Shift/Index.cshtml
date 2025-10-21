@@ -1,0 +1,122 @@
+﻿@model IEnumerable<A_Simple_Hr_Management_System.Models.Shift>
+
+@{
+    ViewData["Title"] = "Shifts";
+}
+
+@if (ViewBag.SelectedCompanyName != null)
+{
+    <h1>Shifts for: @ViewBag.SelectedCompanyName</h1>
+
+    <p><button type="button" class="btn btn-primary" id="createNewBtn">Create New Shift</button></p>
+
+    <table class="table" id="shiftTable">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.ShiftName)</th>
+                <th>@Html.DisplayNameFor(model => model.In)</th>
+                <th>@Html.DisplayNameFor(model => model.Out)</th>
+                <th>@Html.DisplayNameFor(model => model.Late)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.ShiftName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.In)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Out)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Late)</td>
+                    <td>
+                        @Html.AntiForgeryToken()
+                        <a asp-action="Edit" asp-route-id="@item.ShiftId" class="btn btn-sm btn-info js-edit">Edit</a>
+                        <button data-id="@item.ShiftId" class="btn btn-sm btn-danger js-delete">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Please select a company to see its shifts.</div>
+}
+
+<div class="modal fade" id="mainModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mainModalLabel">Shift</h5>
+                <button typeT="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var modal = new bootstrap.Modal(document.getElementById('mainModal'), {});
+            var modalTitle = $('#mainModal .modal-title');
+            var modalBody = $('#mainModal .modal-body');
+
+            // CREATE
+            $('#createNewBtn').on('click', function () {
+                modalTitle.text('Create New Shift');
+                $.get('/Shift/Create', function (data) {
+                    modalBody.html(data);
+                    $.validator.unobtrusive.parse($('#createShiftForm'));
+                    modal.show();
+                });
+            });
+
+            $('#mainModal').on('submit', '#createShiftForm', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Shift/CreateAjax', type: 'POST', data: $(this).serialize(),
+                    headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (data) { if (data.success) { location.reload(); } }
+                });
+            });
+
+            // EDIT
+            $('#shiftTable').on('click', '.js-edit', function (e) {
+                e.preventDefault();
+                modalTitle.text('Edit Shift');
+                $.get($(this).attr("href"), function (data) {
+                    modalBody.html(data);
+                    $.validator.unobtrusive.parse($('#editShiftForm'));
+                    modal.show();
+                });
+            });
+
+            $('#mainModal').on('submit', '#editShiftForm', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Shift/EditAjax', type: 'POST', data: $(this).serialize(),
+                    headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (data) { if (data.success) { location.reload(); } }
+                });
+            });
+
+            // DELETE
+            $('#shiftTable').on('click', '.js-delete', function () {
+                var button = $(this);
+                if (confirm("Are you sure?")) {
+                    $.ajax({
+                        url: '/Shift/DeleteAjax', type: 'POST', data: { id: button.attr('data-id') },
+                        headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                        success: function (data) {
+                            if (data.success) { button.closest('tr').fadeOut(500, function () { $(this).remove(); }); }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

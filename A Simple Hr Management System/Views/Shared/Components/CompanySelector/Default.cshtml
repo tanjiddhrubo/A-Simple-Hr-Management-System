@@ -1,0 +1,12 @@
+﻿@model IEnumerable<A_Simple_Hr_Management_System.Models.Company>
+
+<div class="form-inline ml-auto">
+    <label for="companySelector" class="mr-2">Selected Company:</label>
+    <select id="companySelector" class="form-control">
+        <option value="">-- Select a Company --</option>
+        @foreach (var company in Model)
+        {
+            <option value="@company.ComId">@company.ComName</option>
+        }
+    </select>
+</div>

@@ -1,0 +1,116 @@
+﻿@model IEnumerable<A_Simple_Hr_Management_System.Models.Department>
+
+@{
+    ViewData["Title"] = "Departments";
+}
+
+@if (ViewBag.SelectedCompanyName != null)
+{
+    <h1>Departments for: @ViewBag.SelectedCompanyName</h1>
+
+    <p><button type="button" class="btn btn-primary" id="createNewBtn">Create New Department</button></p>
+
+    <table class="table" id="departmentTable">
+        <thead>
+            <tr>
+                <th>Department Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.DeptName</td>
+                    <td>
+                        @Html.AntiForgeryToken()
+                        <a asp-action="Edit" asp-route-id="@item.DeptId" class="btn btn-sm btn-info js-edit">Edit</a>
+                        <button data-id="@item.DeptId" class="btn btn-sm btn-danger js-delete">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Please select a company to see its departments.</div>
+}
+
+<div class="modal fade" id="mainModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mainModalLabel">Department</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var modal = new bootstrap.Modal(document.getElementById('mainModal'), {});
+            var modalTitle = $('#mainModal .modal-title');
+            var modalBody = $('#mainModal .modal-body');
+
+            // CREATE
+            $('#createNewBtn').on('click', function () {
+                modalTitle.text('Create New Department');
+                $.get('/Department/Create', function (data) {
+                    modalBody.html(data);
+                    $.validator.unobtrusive.parse($('#createDepartmentForm'));
+                    modal.show();
+                });
+            });
+
+            $('#mainModal').on('submit', '#createDepartmentForm', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Department/CreateAjax', type: 'POST', data: $(this).serialize(),
+                    headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (data) { if (data.success) { location.reload(); } }
+                });
+            });
+
+            // EDIT
+            $('#departmentTable').on('click', '.js-edit', function (e) {
+                e.preventDefault();
+                modalTitle.text('Edit Department');
+                $.get($(this).attr("href"), function (data) {
+                    modalBody.html(data);
+                    $.validator.unobtrusive.parse($('#editDepartmentForm'));
+                    modal.show();
+                });
+            });
+
+            $('#mainModal').on('submit', '#editDepartmentForm', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Department/EditAjax', type: 'POST', data: $(this).serialize(),
+                    headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (data) { if (data.success) { location.reload(); } }
+                });
+            });
+
+            // DELETE
+            $('#departmentTable').on('click', '.js-delete', function () {
+                var button = $(this);
+                if (confirm("Are you sure you want to delete this department?")) {
+                    $.ajax({
+                        url: '/Department/DeleteAjax', type: 'POST', data: { id: button.attr('data-id') },
+                        headers: { RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() },
+                        success: function (data) {
+                            if (data.success) { button.closest('tr').fadeOut(500, function () { $(this).remove(); }); }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
