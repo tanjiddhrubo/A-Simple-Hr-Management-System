@@ -8,7 +8,7 @@ namespace A_Simple_Hr_Management_System.Interfaces
         T? Get(Expression<Func<T, bool>> filter);
 
         // Gets all items
-        IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null);
+        IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null);
         void Add(T entity);
         void Update(T entity);
 

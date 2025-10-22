@@ -16,5 +16,6 @@ namespace A_Simple_Hr_Management_System.Data
         public DbSet<Designation> Designations { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<Shift> Shifts { get; set; }
+        public DbSet<Employee> Employees { get; set; }
     }
 }

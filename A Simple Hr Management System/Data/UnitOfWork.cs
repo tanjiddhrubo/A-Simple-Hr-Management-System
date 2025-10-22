@@ -22,13 +22,20 @@ namespace A_Simple_Hr_Management_System.Data
             return _dbSet.FirstOrDefault(filter);
         }
 
-        
-        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null)
+
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
         {
             IQueryable<T> query = _dbSet;
             if (filter != null)
             {
                 query = query.Where(filter);
+            }
+            if (includeProperties != null)
+            {
+                foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProp);
+                }
             }
             return query.ToList();
         }
@@ -57,6 +64,7 @@ namespace A_Simple_Hr_Management_System.Data
         public IRepository<Designation> Designations { get; private set; }
         public IRepository<Department> Departments { get; private set; }
         public IRepository<Shift> Shifts { get; private set; }
+        public IRepository<Employee> Employees { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -65,6 +73,7 @@ namespace A_Simple_Hr_Management_System.Data
             Designations = new Repository<Designation>(_db);
             Departments = new Repository<Department>(_db);
             Shifts = new Repository<Shift>(_db);
+            Employees = new Repository<Employee>(_db);
         }
 
         public void Dispose()

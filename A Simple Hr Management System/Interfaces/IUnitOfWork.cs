@@ -8,6 +8,7 @@ namespace A_Simple_Hr_Management_System.Interfaces
         IRepository<Designation> Designations { get; }
         IRepository<Department> Departments { get; }
         IRepository<Shift> Shifts { get; }
+        IRepository<Employee> Employees { get; }
         void Save();
     }
 }
