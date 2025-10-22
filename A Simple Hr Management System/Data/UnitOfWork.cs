@@ -65,6 +65,7 @@ namespace A_Simple_Hr_Management_System.Data
         public IRepository<Department> Departments { get; private set; }
         public IRepository<Shift> Shifts { get; private set; }
         public IRepository<Employee> Employees { get; private set; }
+        public IRepository<Attendance> Attendances { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -74,6 +75,7 @@ namespace A_Simple_Hr_Management_System.Data
             Departments = new Repository<Department>(_db);
             Shifts = new Repository<Shift>(_db);
             Employees = new Repository<Employee>(_db);
+            Attendances = new Repository<Attendance>(_db);
         }
 
         public void Dispose()

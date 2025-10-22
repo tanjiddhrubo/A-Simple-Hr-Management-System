@@ -1,0 +1,67 @@
+﻿@model List<A_Simple_Hr_Management_System.ViewModels.AttendanceVM>
+
+@{
+    ViewData["Title"] = "Bulk Attendance";
+    DateOnly attendanceDate = ViewBag.AttendanceDate;
+}
+
+<h1>Bulk Attendance</h1>
+
+<form asp-action="BulkAttendance" method="get">
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="date" class="form-label">Select Date:</label>
+            <input type="date" id="date" name="date" class="form-control" value="@attendanceDate.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-md-2" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">Load Data</button>
+        </div>
+    </div>
+</form>
+<hr />
+
+<form asp-action="SaveBulkAttendance" method="post">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Shift</th>
+                <th>Status</th>
+                <th>In Time</th>
+                <th>Out Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <input type="hidden" asp-for="@Model[i].EmpId" />
+                    <input type="hidden" asp-for="@Model[i].EmpName" />
+                    <input type="hidden" asp-for="@Model[i].ShiftName" />
+                    <input type="hidden" asp-for="@Model[i].ShiftInTime" />
+                    <input type="hidden" asp-for="@Model[i].dtDate" />
+
+                    <td>@Model[i].EmpName</td>
+                    <td>@Model[i].ShiftName (@Model[i].ShiftInTime?.ToString("hh:mm tt"))</td>
+                    <td>
+                        <select asp-for="@Model[i].AttStatus" class="form-select form-select-sm">
+                            <option value="A">Absent</option>
+                            <option value="P">Present</option>
+                            <option value="L">Late</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input asp-for="@Model[i].InTime" class="form-control form-control-sm" type="time" />
+                    </td>
+                    <td>
+                        <input asp-for="@Model[i].OutTime" class="form-control form-control-sm" type="time" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="form-group mt-3">
+        <input type="submit" value="Save Attendance" class="btn btn-success" />
+    </div>
+</form>
