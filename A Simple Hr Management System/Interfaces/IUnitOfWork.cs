@@ -10,6 +10,9 @@ namespace A_Simple_Hr_Management_System.Interfaces
         IRepository<Shift> Shifts { get; }
         IRepository<Employee> Employees { get; }
         IRepository<Attendance> Attendances { get; }
+        IRepository<AttendanceSummary> AttendanceSummaries { get; }
+
+        IRepository<Salary> Salaries { get; }
         void Save();
     }
 }

@@ -3,6 +3,7 @@ using System;
 using A_Simple_Hr_Management_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace A_Simple_Hr_Management_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251023030708_AddAttendanceSummaryTable")]
+    partial class AddAttendanceSummaryTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,57 +223,6 @@ namespace A_Simple_Hr_Management_System.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("A_Simple_Hr_Management_System.Models.Salary", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("AbsentAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("Basic")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<Guid>("ComId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EmpId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Gross")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("HRent")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("Medical")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("PaidAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("PayableAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int>("dtMonth")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("dtYear")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ComId");
-
-                    b.HasIndex("EmpId");
-
-                    b.ToTable("Salaries");
-                });
-
             modelBuilder.Entity("A_Simple_Hr_Management_System.Models.Shift", b =>
                 {
                     b.Property<Guid>("ShiftId")
@@ -393,25 +345,6 @@ namespace A_Simple_Hr_Management_System.Migrations
                     b.Navigation("Designation");
 
                     b.Navigation("Shift");
-                });
-
-            modelBuilder.Entity("A_Simple_Hr_Management_System.Models.Salary", b =>
-                {
-                    b.HasOne("A_Simple_Hr_Management_System.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("ComId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("A_Simple_Hr_Management_System.Models.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmpId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-
-                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("A_Simple_Hr_Management_System.Models.Shift", b =>

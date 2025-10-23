@@ -1,0 +1,102 @@
+﻿@model IEnumerable<A_Simple_Hr_Management_System.Models.AttendanceSummary>
+
+@{
+    ViewData["Title"] = "Attendance Summary Report";
+    int selectedYear = ViewBag.SelectedYear;
+    int selectedMonth = ViewBag.SelectedMonth;
+    // We'll add the salary data to the ViewBag
+    var salaryList = ViewBag.SalaryReport as IEnumerable<A_Simple_Hr_Management_System.Models.Salary>;
+}
+
+@if (ViewBag.SelectedCompanyName != null)
+{
+    <h1>Reports for: @ViewBag.SelectedCompanyName</h1>
+    <hr />
+
+    <h4>Generate Reports</h4>
+    <form method="post" class="row g-3 mb-3 align-items-end">
+        @Html.AntiForgeryToken()
+        <div class="col-md-3">
+            <label for="year" class="form-label">Year</label>
+            <input type="number" name="year" class="form-control" value="@selectedYear" />
+        </div>
+        <div class="col-md-3">
+            <label for="month" class="form-label">Month</label>
+            <select name="month" class="form-select">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i" selected="@(i == selectedMonth)">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" asp-action="Generate" class="btn btn-info">Generate Attendance</button>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" asp-action="GenerateSalary" class="btn btn-success">Generate Salary</button>
+        </div>
+    </form>
+    <hr />
+
+    <h4>Attendance Summary for: @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Present</th>
+                <th>Late</th>
+                <th>Absent</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Employee?.EmpName</td>
+                    <td>@item.Present</td>
+                    <td>@item.Late</td>
+                    <td>@item.Absent</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <hr />
+
+    <h4>Salary Report for: @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Gross</th>
+                <th>Basic</th>
+                <th>H-Rent</th>
+                <th>Medical</th>
+                <th>Absent Amount</th>
+                <th>Payable Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (salaryList != null)
+            {
+                @foreach (var item in salaryList)
+                {
+                    <tr>
+                        <td>@item.Employee?.EmpName</td>
+                        <td>@item.Gross.ToString("N2")</td>
+                        <td>@item.Basic.ToString("N2")</td>
+                        <td>@item.HRent.ToString("N2")</td>
+                        <td>@item.Medical.ToString("N2")</td>
+                        <td>@item.AbsentAmount.ToString("N2")</td>
+                        <td>@item.PayableAmount.ToString("N2")</td>
+                        <td>@(item.IsPaid ? "Paid" : "Unpaid")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Please select a company to run reports.</div>
+}

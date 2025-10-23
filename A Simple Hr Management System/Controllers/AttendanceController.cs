@@ -1,6 +1,6 @@
 ﻿using A_Simple_Hr_Management_System.Interfaces;
 using A_Simple_Hr_Management_System.Models;
-using A_Simple_Hr_Management_System.ViewModels; // We will create this VM soon
+using A_Simple_Hr_Management_System.ViewModels; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
