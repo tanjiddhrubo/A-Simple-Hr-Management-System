@@ -1,11 +1,29 @@
 ﻿@model IEnumerable<A_Simple_Hr_Management_System.Models.AttendanceSummary>
 
 @{
-    ViewData["Title"] = "Attendance Summary Report";
+    ViewData["Title"] = "Reports";
+    // Get all filters
     int selectedYear = ViewBag.SelectedYear;
     int selectedMonth = ViewBag.SelectedMonth;
-    // We'll add the salary data to the ViewBag
+    Guid? selectedDeptId = ViewBag.SelectedDeptId;
+    DateOnly selectedDtFrom = ViewBag.SelectedDtFrom;
+    DateOnly selectedDtTo = ViewBag.SelectedDtTo;
+    bool? selectedIsPaid = ViewBag.SelectedIsPaid;
+
+    // Get all report data
     var salaryList = ViewBag.SalaryReport as IEnumerable<A_Simple_Hr_Management_System.Models.Salary>;
+    var employeeList = ViewBag.EmployeeReport as IEnumerable<A_Simple_Hr_Management_System.Models.Employee>;
+    var attendanceList = ViewBag.AttendanceReport as IEnumerable<A_Simple_Hr_Management_System.Models.Attendance>;
+
+    var attendanceGrouped = attendanceList?
+        .GroupBy(a => a.Employee)
+        .Select(g => new
+        {
+            Employee = g.Key,
+            TotalPresent = g.Count(a => a.AttStatus == "P"),
+            TotalLate = g.Count(a => a.AttStatus == "L"),
+            TotalAbsent = g.Count(a => a.AttStatus == "A")
+        });
 }
 
 @if (ViewBag.SelectedCompanyName != null)
@@ -13,22 +31,55 @@
     <h1>Reports for: @ViewBag.SelectedCompanyName</h1>
     <hr />
 
-    <h4>Generate Reports</h4>
-    <form method="post" class="row g-3 mb-3 align-items-end">
-        @Html.AntiForgeryToken()
+    <h4>Report Filters</h4>
+    <form asp-action="Index" method="get" class="row g-3 mb-3 align-items-end">
         <div class="col-md-3">
-            <label for="year" class="form-label">Year</label>
-            <input type="number" name="year" class="form-control" value="@selectedYear" />
-        </div>
-        <div class="col-md-3">
-            <label for="month" class="form-label">Month</label>
-            <select name="month" class="form-select">
-                @for (int i = 1; i <= 12; i++)
-                {
-                    <option value="@i" selected="@(i == selectedMonth)">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
-                }
+            <label for="deptId" class="form-label">Department</label>
+            <select name="deptId" class="form-select" asp-items="@(new SelectList(ViewBag.DepartmentList, "Value", "Text", selectedDeptId))">
+                <option value="">-- All Departments --</option>
             </select>
         </div>
+        <div class="col-md-3">
+            <label for="dtFrom" class="form-label">From Date</label>
+            <input type="date" name="dtFrom" class="form-control" value="@selectedDtFrom.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-md-3">
+            <label for="dtTo" class="form-label">To Date</label>
+            <input type="date" name="dtTo" class="form-control" value="@selectedDtTo.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="col-md-3">
+            <label for="isPaid" class="form-label">Payment Status</label>
+            <select name="isPaid" class="form-select">
+                <option value="" selected="@(selectedIsPaid == null)">All</option>
+                <option value="false" selected="@(selectedIsPaid == false)">Unpaid</option>
+                <option value="true" selected="@(selectedIsPaid == true)">Paid</option>
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label for="year" class="form-label">Month/Year (for Salary & Monthly Attendance)</label>
+            <div class="input-group">
+                <select name="month" class="form-select">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        <option value="@i" selected="@(i == selectedMonth)">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                    }
+                </select>
+                <input type="number" name="year" class="form-control" value="@selectedYear" />
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-info">Filter Reports</button>
+        </div>
+    </form>
+    <hr />
+
+    <h4>Generate Report Data (for @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear)</h4>
+    <form method="post" class="row g-3 mb-3 align-items-end">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="year" value="@selectedYear" />
+        <input type="hidden" name="month" value="@selectedMonth" />
         <div class="col-md-3">
             <button type="submit" asp-action="Generate" class="btn btn-info">Generate Attendance</button>
         </div>
@@ -38,8 +89,66 @@
     </form>
     <hr />
 
-    <h4>Attendance Summary for: @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear</h4>
-    <table class="table table-striped">
+    <h4>Employee List</h4>
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Join Date</th>
+                <th>Service Days</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Shift Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (employeeList != null)
+            {
+                @foreach (var item in employeeList)
+                {
+                    <tr>
+                        <td>@item.EmpName</td>
+                        <td>@item.dtJoin.ToString("dd-MMM-yyyy")</td>
+                        <td>@( (DateOnly.FromDateTime(DateTime.Now).DayNumber - item.dtJoin.DayNumber) ) days</td>
+                        <td>@item.Department?.DeptName</td>
+                        <td>@item.Designation?.DesigName</td>
+                        <td>@item.Shift?.ShiftName</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <hr />
+
+    <h4>Attendance Summary (From @selectedDtFrom.ToString("dd-MMM") To @selectedDtTo.ToString("dd-MMM"))</h4>
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Total Present</th>
+                <th>Total Late</th>
+                <th>Total Absent</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (attendanceGrouped != null)
+            {
+                @foreach (var item in attendanceGrouped)
+                {
+                    <tr>
+                        <td>@item.Employee?.EmpName</td>
+                        <td>@item.TotalPresent</td>
+                        <td>@item.TotalLate</td>
+                        <td>@item.TotalAbsent</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <hr />
+
+    <h4>Monthly Attendance Summary (for @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear)</h4>
+    <table class="table table-striped table-sm">
         <thead>
             <tr>
                 <th>Employee Name</th>
@@ -62,8 +171,8 @@
     </table>
     <hr />
 
-    <h4>Salary Report for: @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear</h4>
-    <table class="table table-striped">
+    <h4>Salary Report (for @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectedMonth) @selectedYear)</h4>
+    <table class="table table-striped table-sm" id="salaryTable">
         <thead>
             <tr>
                 <th>Employee Name</th>
@@ -73,6 +182,7 @@
                 <th>Medical</th>
                 <th>Absent Amount</th>
                 <th>Payable Amount</th>
+                <th class="paid-amount-header">Paid Amount</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -89,7 +199,18 @@
                         <td>@item.Medical.ToString("N2")</td>
                         <td>@item.AbsentAmount.ToString("N2")</td>
                         <td>@item.PayableAmount.ToString("N2")</td>
-                        <td>@(item.IsPaid ? "Paid" : "Unpaid")</td>
+                        <td class="paid-amount-cell">@item.PaidAmount.ToString("N2")</td>
+                        <td class="status-cell">
+                            @if (item.IsPaid)
+                            {
+                                <span class="badge bg-success">Paid</span>
+                            }
+                            else
+                            {
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-xs btn-success js-pay-button" data-id="@item.Id">Pay</button>
+                            }
+                        </td>
                     </tr>
                 }
             }
@@ -99,4 +220,44 @@
 else
 {
     <div class="alert alert-info">Please select a company to run reports.</div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Handle the "Mark as Paid" button click
+            $('#salaryTable').on('click', '.js-pay-button', function () {
+                var button = $(this);
+                var salaryId = button.attr('data-id');
+                // Find the token in the same cell
+                var token = button.siblings('input[name="__RequestVerificationToken"]').val();
+
+                if (confirm("Are you sure you want to mark this salary as paid?")) {
+                    $.ajax({
+                        url: '/Report/MarkAsPaid',
+                        type: 'POST',
+                        data: { id: salaryId },
+                        headers: { RequestVerificationToken: token },
+                        success: function (data) {
+                            if (data.success) {
+                                // Find the row cells
+                                var row = button.closest('tr');
+                                var statusCell = row.find('.status-cell');
+                                var paidAmountCell = row.find('.paid-amount-cell');
+
+                                // Update the cells
+                                statusCell.html('<span class="badge bg-success">Paid</span>');
+                                paidAmountCell.text(data.paidAmount.toFixed(2));
+                            } else {
+                                alert("Error: " + data.message);
+                            }
+                        },
+                        error: function () {
+                            alert("An error occurred.");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 }
